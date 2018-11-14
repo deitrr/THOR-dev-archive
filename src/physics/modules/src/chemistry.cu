@@ -48,6 +48,9 @@
 #include "chemistry_device.h" // Simple chemistry.
 #include "chemistry_host.h"
 
+#include "binary_test.h"
+#include "debug.h"
+
 const bool chemistry_enabled_default = false;
 
 
@@ -110,37 +113,25 @@ bool chemistry::initialise_memory(const ESP &              esp,
 
     cudaMalloc((void **)&difftr_d, esp.nv * esp.point_num * ntr * sizeof(double));
 
-
-    cudaMemcpy(coeq_d, coeq_h, num_trace_pts * sizeof(double), cudaMemcpyHostToDevice);
-    cudaMemcpy(ch4eq_d, ch4eq_h, num_trace_pts * sizeof(double), cudaMemcpyHostToDevice);
-    cudaMemcpy(h2oeq_d, h2oeq_h, num_trace_pts * sizeof(double), cudaMemcpyHostToDevice);
-    cudaMemcpy(co2eq_d, co2eq_h, num_trace_pts * sizeof(double), cudaMemcpyHostToDevice);
-    cudaMemcpy(nh3eq_d, nh3eq_h, num_trace_pts * sizeof(double), cudaMemcpyHostToDevice);
-
-    cudaMemcpy(tauco_d, tauco_h, num_trace_pts * sizeof(double), cudaMemcpyHostToDevice);
-    cudaMemcpy(tauch4_d, tauch4_h, num_trace_pts * sizeof(double), cudaMemcpyHostToDevice);
-    cudaMemcpy(tauh2o_d, tauh2o_h, num_trace_pts * sizeof(double), cudaMemcpyHostToDevice);
-    cudaMemcpy(tauco2_d, tauco2_h, num_trace_pts * sizeof(double), cudaMemcpyHostToDevice);
-    cudaMemcpy(taunh3_d, taunh3_h, num_trace_pts * sizeof(double), cudaMemcpyHostToDevice);
-
-    cudaMemcpy(P_che_d, P_che_h, num_a * sizeof(double), cudaMemcpyHostToDevice);
-    cudaMemcpy(T_che_d, T_che_h, num_b * sizeof(double), cudaMemcpyHostToDevice);
-
-    cudaMemcpy(tracer_d, tracer_h, esp.point_num * esp.nv * ntr * sizeof(double), cudaMemcpyHostToDevice);
-    cudaMemset(tracers_d, 0, sizeof(double) * esp.nv * esp.point_num * ntr);
-    cudaMemset(tracerk_d, 0, sizeof(double) * esp.nv * esp.point_num * ntr);
-
-    cudaMemset(difftr_d, 0, sizeof(double) * esp.nv * esp.point_num * ntr);
-
     // register the arrays that need to be updated by RK kernel
     phy_modules_core_arrays.register_array(tracers_d, tracerk_d, tracer_d, ntr);
 
+#ifdef BENCHMARKING
+    std::map<std::string, output_def> defs =
+        {
+            {"tracer_d", {tracer_d, esp.nv * esp.point_num * ntr, "RK tracer", "ti", true}},
+            {"tracers_d", {tracers_d, esp.nv * esp.point_num * ntr, "RK tracers", "ts", true}},
+            {"tracerk_d", {tracerk_d, esp.nv * esp.point_num * ntr, "RK tracerk", "tk", true}}};
+
+
+    binary_test::get_instance().append_definitions(defs);
+
+#endif // BENCHMARING
     return true;
 }
 
 
 bool chemistry::free_memory() {
-    // TODO: check symetry of alloc/dealloc. Stuff is missing
     free(tauch4_h);
     free(tauco_h);
     free(tauh2o_h);
@@ -155,6 +146,8 @@ bool chemistry::free_memory() {
 
     free(P_che_h);
     free(T_che_h);
+
+    free(tracer_h);
 
     cudaFree(ch4eq_d);
     cudaFree(coeq_d);
@@ -182,8 +175,6 @@ bool chemistry::free_memory() {
 
 bool chemistry::initial_conditions(const ESP &    esp,
                                    const XPlanet &planet) {
-
-
     // Input for chemistry
     FILE * infile1;
     int    NT = 55;
@@ -250,9 +241,10 @@ bool chemistry::initial_conditions(const ESP &    esp,
         for (int j = 0; j < NP; j++) P_che_h[j] = log(P_che_h[j]);
         fclose(infile1);
 
-        // CH4
+
         for (int lev = 0; lev < esp.nv; lev++) {
             for (int i = 0; i < esp.point_num; i++) {
+                // CH4
                 tracer_h[i * esp.nv * ntr + lev * ntr + 0] = Compute_tracer_host(
                                                                  ch4eq_h,
                                                                  P_che_h,
@@ -260,11 +252,7 @@ bool chemistry::initial_conditions(const ESP &    esp,
                                                                  esp.temperature_h[i * esp.nv + lev],
                                                                  esp.pressure_h[i * esp.nv + lev])
                                                              * esp.Rho_h[i * esp.nv + lev];
-            }
-        }
-        // CO
-        for (int lev = 0; lev < esp.nv; lev++) {
-            for (int i = 0; i < esp.point_num; i++) {
+                // CO
                 tracer_h[i * esp.nv * ntr + lev * ntr + 1] = Compute_tracer_host(
                                                                  coeq_h,
                                                                  P_che_h,
@@ -272,33 +260,21 @@ bool chemistry::initial_conditions(const ESP &    esp,
                                                                  esp.temperature_h[i * esp.nv + lev],
                                                                  esp.pressure_h[i * esp.nv + lev])
                                                              * esp.Rho_h[i * esp.nv + lev];
-            }
-        }
-        // H2O
-        for (int lev = 0; lev < esp.nv; lev++) {
-            for (int i = 0; i < esp.point_num; i++) {
+                // H2O
                 tracer_h[i * esp.nv * ntr + lev * ntr + 2] = Compute_tracer_host(h2oeq_h,
                                                                                  P_che_h,
                                                                                  T_che_h,
                                                                                  esp.temperature_h[i * esp.nv + lev],
                                                                                  esp.pressure_h[i * esp.nv + lev])
                                                              * esp.Rho_h[i * esp.nv + lev];
-            }
-        }
-        // CO2
-        for (int lev = 0; lev < esp.nv; lev++) {
-            for (int i = 0; i < esp.point_num; i++) {
+                // CO2
                 tracer_h[i * esp.nv * ntr + lev * ntr + 3] = Compute_tracer_host(co2eq_h,
                                                                                  P_che_h,
                                                                                  T_che_h,
                                                                                  esp.temperature_h[i * esp.nv + lev],
                                                                                  esp.pressure_h[i * esp.nv + lev])
                                                              * esp.Rho_h[i * esp.nv + lev];
-            }
-        }
-        // NH3
-        for (int lev = 0; lev < esp.nv; lev++) {
-            for (int i = 0; i < esp.point_num; i++) {
+                // NH3
                 tracer_h[i * esp.nv * ntr + lev * ntr + 4] = Compute_tracer_host(nh3eq_h,
                                                                                  P_che_h,
                                                                                  T_che_h,
@@ -347,7 +323,7 @@ bool chemistry::dyn_core_loop_slow_modes(const ESP &    esp,
                                          int            nstep,     // Step number
                                          double         time_step, // Time-step [s]
                                          double         mu,        // Atomic mass unit [kg]
-                                         double         kb,         // Boltzmann constant [J/K]
+                                         double         kb,        // Boltzmann constant [J/K]
                                          bool           HyDiff) {            // Hyperdiffusion switch
     const int LN = 16;                                             // Size of the inner region side.
     dim3      NT(esp.nl_region, esp.nl_region, 1);                 // Number of threads in a block.

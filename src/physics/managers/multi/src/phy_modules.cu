@@ -52,8 +52,8 @@ bool phy_modules_init_data(const ESP&     esp,
     }
 
 
-    rt.initial_conditions(esp, planet);
-    chem.initial_conditions(esp, planet);
+    out &= rt.initial_conditions(esp, planet);
+    out &= chem.initial_conditions(esp, planet);
     return out;
 }
 
