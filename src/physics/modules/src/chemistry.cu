@@ -118,8 +118,10 @@ bool chemistry::initialise_memory(const ESP &              esp,
             {"tracers_d", {tracers_d, esp.nv * esp.point_num * ntr, "RK tracers", "ts", true}},
             {"tracerk_d", {tracerk_d, esp.nv * esp.point_num * ntr, "RK tracerk", "tk", true}}};
 
-
-    binary_test::get_instance().append_definitions(defs);
+    std::vector<std::string> output_vars = {"tracer_d", "tracers_d", "tracerk_d"};
+    
+        
+    binary_test::get_instance().register_phy_modules_variables(defs, std::vector<std::string>(), output_vars);
 
 #endif // BENCHMARING
     return true;
