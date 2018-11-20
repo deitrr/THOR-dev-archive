@@ -98,7 +98,6 @@ public:
     void print_config();
 
 private:
-    bool chemistry_enabled = false;
     int  ntr               = 5;
 
     // host array

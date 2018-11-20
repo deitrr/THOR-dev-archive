@@ -51,9 +51,6 @@
 #include "binary_test.h"
 #include "debug.h"
 
-const bool chemistry_enabled_default = false;
-
-
 chemistry::chemistry() {
 }
 
@@ -62,8 +59,6 @@ chemistry::~chemistry() {
 
 void chemistry::print_config() {
     printf("  Chemistry module\n");
-
-    printf("    Enabled  = %s.\n", chemistry_enabled ? "true" : "false");
 }
 
 bool chemistry::initialise_memory(const ESP &              esp,
@@ -180,131 +175,129 @@ bool chemistry::initial_conditions(const ESP &    esp,
     int    NT = 55;
     int    NP = 135;
     double dummy;
-    // TODO: moce the chemistry enable test outside of module
-    if (chemistry_enabled == true) {
-        // TODO: find where to store the startup files
-        infile1 = fopen("ifile/solar_fEQ_THOR.txt", "r");
-        if (infile1 == NULL) {
-            printf("\nUnable to open input file.\n");
-            exit(EXIT_FAILURE);
-        }
-        for (int i = 0; i < NT; i++) {
-            for (int j = 0; j < NP; j++) {
-                if (fscanf(infile1,
-                           "%lf %lf %lf %lf %lf %lf %lf",
-                           &T_che_h[i],
-                           &P_che_h[j],
-                           &ch4eq_h[j * NT + i],
-                           &coeq_h[j * NT + i],
-                           &h2oeq_h[j * NT + i],
-                           &co2eq_h[j * NT + i],
-                           &nh3eq_h[j * NT + i])
-                    != 7) {
-                    printf("error parsing ifile/solar_fEQ_THOR.txt\n");
-                    fclose(infile1);
-                    return false;
-                }
-            }
-        }
 
 
-        fclose(infile1);
-
-
-        infile1 = fopen("ifile/solar_chem_time.txt", "r");
-        if (infile1 == NULL) {
-            printf("\nUnable to open input file.\n");
-            return false;
-        }
-        for (int i = 0; i < NT; i++) {
-            for (int j = 0; j < NP; j++) {
-                if (fscanf(infile1,
-                           "%lf %lf %lf %lf %lf %lf %lf %lf %lf %lf",
-                           &T_che_h[i],
-                           &P_che_h[j],
-                           &tauch4_h[j * NT + i],
-                           &tauco_h[j * NT + i],
-                           &dummy,
-                           &dummy,
-                           &tauh2o_h[j * NT + i],
-                           &tauco2_h[j * NT + i],
-                           &taunh3_h[j * NT + i],
-                           &dummy)
-                    != 10) {
-                    printf("error parsing ifile/solar_chem_time.txt\n");
-                    fclose(infile1);
-                    return false;
-                }
-            }
-        }
-
-        for (int j = 0; j < NP; j++) P_che_h[j] = log(P_che_h[j]);
-        fclose(infile1);
-
-
-        for (int lev = 0; lev < esp.nv; lev++) {
-            for (int i = 0; i < esp.point_num; i++) {
-                // CH4
-                tracer_h[i * esp.nv * ntr + lev * ntr + 0] = Compute_tracer_host(
-                                                                 ch4eq_h,
-                                                                 P_che_h,
-                                                                 T_che_h,
-                                                                 esp.temperature_h[i * esp.nv + lev],
-                                                                 esp.pressure_h[i * esp.nv + lev])
-                                                             * esp.Rho_h[i * esp.nv + lev];
-                // CO
-                tracer_h[i * esp.nv * ntr + lev * ntr + 1] = Compute_tracer_host(
-                                                                 coeq_h,
-                                                                 P_che_h,
-                                                                 T_che_h,
-                                                                 esp.temperature_h[i * esp.nv + lev],
-                                                                 esp.pressure_h[i * esp.nv + lev])
-                                                             * esp.Rho_h[i * esp.nv + lev];
-                // H2O
-                tracer_h[i * esp.nv * ntr + lev * ntr + 2] = Compute_tracer_host(h2oeq_h,
-                                                                                 P_che_h,
-                                                                                 T_che_h,
-                                                                                 esp.temperature_h[i * esp.nv + lev],
-                                                                                 esp.pressure_h[i * esp.nv + lev])
-                                                             * esp.Rho_h[i * esp.nv + lev];
-                // CO2
-                tracer_h[i * esp.nv * ntr + lev * ntr + 3] = Compute_tracer_host(co2eq_h,
-                                                                                 P_che_h,
-                                                                                 T_che_h,
-                                                                                 esp.temperature_h[i * esp.nv + lev],
-                                                                                 esp.pressure_h[i * esp.nv + lev])
-                                                             * esp.Rho_h[i * esp.nv + lev];
-                // NH3
-                tracer_h[i * esp.nv * ntr + lev * ntr + 4] = Compute_tracer_host(nh3eq_h,
-                                                                                 P_che_h,
-                                                                                 T_che_h,
-                                                                                 esp.temperature_h[i * esp.nv + lev],
-                                                                                 esp.pressure_h[i * esp.nv + lev])
-                                                             * esp.Rho_h[i * esp.nv + lev];
+    // TODO: find where to store the startup files
+    infile1 = fopen("ifile/solar_fEQ_THOR.txt", "r");
+    if (infile1 == NULL) {
+        printf("\nUnable to open input file.\n");
+        exit(EXIT_FAILURE);
+    }
+    for (int i = 0; i < NT; i++) {
+        for (int j = 0; j < NP; j++) {
+            if (fscanf(infile1,
+                       "%lf %lf %lf %lf %lf %lf %lf",
+                       &T_che_h[i],
+                       &P_che_h[j],
+                       &ch4eq_h[j * NT + i],
+                       &coeq_h[j * NT + i],
+                       &h2oeq_h[j * NT + i],
+                       &co2eq_h[j * NT + i],
+                       &nh3eq_h[j * NT + i])
+                != 7) {
+                printf("error parsing ifile/solar_fEQ_THOR.txt\n");
+                fclose(infile1);
+                return false;
             }
         }
     }
 
-    if (chemistry_enabled == true) {
-        cudaMemcpy(coeq_d, coeq_h, 7425 * sizeof(double), cudaMemcpyHostToDevice);
-        cudaMemcpy(ch4eq_d, ch4eq_h, 7425 * sizeof(double), cudaMemcpyHostToDevice);
-        cudaMemcpy(h2oeq_d, h2oeq_h, 7425 * sizeof(double), cudaMemcpyHostToDevice);
-        cudaMemcpy(co2eq_d, co2eq_h, 7425 * sizeof(double), cudaMemcpyHostToDevice);
-        cudaMemcpy(nh3eq_d, nh3eq_h, 7425 * sizeof(double), cudaMemcpyHostToDevice);
 
-        cudaMemcpy(tauco_d, tauco_h, 7425 * sizeof(double), cudaMemcpyHostToDevice);
-        cudaMemcpy(tauch4_d, tauch4_h, 7425 * sizeof(double), cudaMemcpyHostToDevice);
-        cudaMemcpy(tauh2o_d, tauh2o_h, 7425 * sizeof(double), cudaMemcpyHostToDevice);
-        cudaMemcpy(tauco2_d, tauco2_h, 7425 * sizeof(double), cudaMemcpyHostToDevice);
-        cudaMemcpy(taunh3_d, taunh3_h, 7425 * sizeof(double), cudaMemcpyHostToDevice);
+    fclose(infile1);
 
-        cudaMemcpy(P_che_d, P_che_h, 135 * sizeof(double), cudaMemcpyHostToDevice);
-        cudaMemcpy(T_che_d, T_che_h, 55 * sizeof(double), cudaMemcpyHostToDevice);
 
-        cudaMemcpy(tracer_d, tracer_h, esp.point_num * esp.nv * ntr * sizeof(double), cudaMemcpyHostToDevice);
-        cudaMemset(tracers_d, 0, sizeof(double) * esp.nv * esp.point_num * ntr);
-        cudaMemset(tracerk_d, 0, sizeof(double) * esp.nv * esp.point_num * ntr);
+    infile1 = fopen("ifile/solar_chem_time.txt", "r");
+    if (infile1 == NULL) {
+        printf("\nUnable to open input file.\n");
+        return false;
     }
+    for (int i = 0; i < NT; i++) {
+        for (int j = 0; j < NP; j++) {
+            if (fscanf(infile1,
+                       "%lf %lf %lf %lf %lf %lf %lf %lf %lf %lf",
+                       &T_che_h[i],
+                       &P_che_h[j],
+                       &tauch4_h[j * NT + i],
+                       &tauco_h[j * NT + i],
+                       &dummy,
+                       &dummy,
+                       &tauh2o_h[j * NT + i],
+                       &tauco2_h[j * NT + i],
+                       &taunh3_h[j * NT + i],
+                       &dummy)
+                != 10) {
+                printf("error parsing ifile/solar_chem_time.txt\n");
+                fclose(infile1);
+                return false;
+            }
+        }
+    }
+
+    for (int j = 0; j < NP; j++) P_che_h[j] = log(P_che_h[j]);
+    fclose(infile1);
+
+
+    for (int lev = 0; lev < esp.nv; lev++) {
+        for (int i = 0; i < esp.point_num; i++) {
+            // CH4
+            tracer_h[i * esp.nv * ntr + lev * ntr + 0] = Compute_tracer_host(
+                                                             ch4eq_h,
+                                                             P_che_h,
+                                                             T_che_h,
+                                                             esp.temperature_h[i * esp.nv + lev],
+                                                             esp.pressure_h[i * esp.nv + lev])
+                                                         * esp.Rho_h[i * esp.nv + lev];
+            // CO
+            tracer_h[i * esp.nv * ntr + lev * ntr + 1] = Compute_tracer_host(
+                                                             coeq_h,
+                                                             P_che_h,
+                                                             T_che_h,
+                                                             esp.temperature_h[i * esp.nv + lev],
+                                                             esp.pressure_h[i * esp.nv + lev])
+                                                         * esp.Rho_h[i * esp.nv + lev];
+            // H2O
+            tracer_h[i * esp.nv * ntr + lev * ntr + 2] = Compute_tracer_host(h2oeq_h,
+                                                                             P_che_h,
+                                                                             T_che_h,
+                                                                             esp.temperature_h[i * esp.nv + lev],
+                                                                             esp.pressure_h[i * esp.nv + lev])
+                                                         * esp.Rho_h[i * esp.nv + lev];
+            // CO2
+            tracer_h[i * esp.nv * ntr + lev * ntr + 3] = Compute_tracer_host(co2eq_h,
+                                                                             P_che_h,
+                                                                             T_che_h,
+                                                                             esp.temperature_h[i * esp.nv + lev],
+                                                                             esp.pressure_h[i * esp.nv + lev])
+                                                         * esp.Rho_h[i * esp.nv + lev];
+            // NH3
+            tracer_h[i * esp.nv * ntr + lev * ntr + 4] = Compute_tracer_host(nh3eq_h,
+                                                                             P_che_h,
+                                                                             T_che_h,
+                                                                             esp.temperature_h[i * esp.nv + lev],
+                                                                             esp.pressure_h[i * esp.nv + lev])
+                                                         * esp.Rho_h[i * esp.nv + lev];
+        }
+    }
+
+
+    cudaMemcpy(coeq_d, coeq_h, 7425 * sizeof(double), cudaMemcpyHostToDevice);
+    cudaMemcpy(ch4eq_d, ch4eq_h, 7425 * sizeof(double), cudaMemcpyHostToDevice);
+    cudaMemcpy(h2oeq_d, h2oeq_h, 7425 * sizeof(double), cudaMemcpyHostToDevice);
+    cudaMemcpy(co2eq_d, co2eq_h, 7425 * sizeof(double), cudaMemcpyHostToDevice);
+    cudaMemcpy(nh3eq_d, nh3eq_h, 7425 * sizeof(double), cudaMemcpyHostToDevice);
+
+    cudaMemcpy(tauco_d, tauco_h, 7425 * sizeof(double), cudaMemcpyHostToDevice);
+    cudaMemcpy(tauch4_d, tauch4_h, 7425 * sizeof(double), cudaMemcpyHostToDevice);
+    cudaMemcpy(tauh2o_d, tauh2o_h, 7425 * sizeof(double), cudaMemcpyHostToDevice);
+    cudaMemcpy(tauco2_d, tauco2_h, 7425 * sizeof(double), cudaMemcpyHostToDevice);
+    cudaMemcpy(taunh3_d, taunh3_h, 7425 * sizeof(double), cudaMemcpyHostToDevice);
+
+    cudaMemcpy(P_che_d, P_che_h, 135 * sizeof(double), cudaMemcpyHostToDevice);
+    cudaMemcpy(T_che_d, T_che_h, 55 * sizeof(double), cudaMemcpyHostToDevice);
+
+    cudaMemcpy(tracer_d, tracer_h, esp.point_num * esp.nv * ntr * sizeof(double), cudaMemcpyHostToDevice);
+    cudaMemset(tracers_d, 0, sizeof(double) * esp.nv * esp.point_num * ntr);
+    cudaMemset(tracerk_d, 0, sizeof(double) * esp.nv * esp.point_num * ntr);
 
 
     return true;
@@ -332,8 +325,6 @@ bool chemistry::dyn_core_loop_slow_modes(const ESP &    esp,
     dim3      NBTRP(2, esp.nv, ntr);                               // Number of blocks in the diffusion routine for tracers. (POLES)
 
     if (HyDiff) {
-
-        if (chemistry_enabled == true) {
             // Tracers
             // TODO: check: where should this be set to 0 ?
             cudaMemset(esp.diff_d, 0, sizeof(double) * 6 * esp.point_num * esp.nv);
@@ -407,7 +398,7 @@ bool chemistry::dyn_core_loop_slow_modes(const ESP &    esp,
                                                        esp.point_num,
                                                        1,
                                                        esp.DeepModel);
-        }
+        
     }
 
 
@@ -427,7 +418,7 @@ bool chemistry::dyn_core_loop_fast_modes(const ESP &    esp,
     dim3      NBTRP(2, esp.nv, ntr);                           // Number of blocks in the diffusion routine for tracers. (POLES)
 
 
-    if (chemistry_enabled == true) {
+
         //
         // Tracer equation.
         cudaDeviceSynchronize();
@@ -469,7 +460,7 @@ bool chemistry::dyn_core_loop_fast_modes(const ESP &    esp,
                                         esp.point_num,
                                         esp.nv,
                                         esp.DeepModel);
-    }
+    
     return true;
 }
 
@@ -496,7 +487,6 @@ bool chemistry::phy_loop(ESP &          esp,
     //
     ////////////////////////
     // Simple chemistry
-    if (chemistry_enabled == true) {
         cudaDeviceSynchronize();
         Tracers_relax_chemistry_co2<<<NBTR, NTH>>>(tracer_d,
                                                    tauch4_d,
@@ -537,7 +527,7 @@ bool chemistry::phy_loop(ESP &          esp,
                                                time_step,
                                                ntr,
                                                esp.point_num);
-    }
+    
 
 
     return true;
@@ -545,31 +535,23 @@ bool chemistry::phy_loop(ESP &          esp,
 
 bool chemistry::configure(config_file &config_reader) {
 
-    config_reader.append_config_var("chemistry", chemistry_enabled, chemistry_enabled_default);
-
 
     return true;
 }
 
 bool chemistry::store(const ESP &esp,
                       storage &  s) {
-
-    if (chemistry_enabled == true) {
         cudaMemcpy(tracer_h, tracer_d, esp.point_num * esp.nv * ntr * sizeof(double), cudaMemcpyDeviceToHost);
         s.append_table(tracer_h,
                        esp.nv * esp.point_num * ntr,
                        "/tracer",
                        " ",
                        "Volume mixing ratio");
-    }
-
 
     return true;
 }
 
 bool chemistry::store_init(storage &s) {
-    //      chemistry option
-    s.append_value(chemistry_enabled ? 1.0 : 0.0, "/chemistry", "-", "Using relaxation chemistry");
 
 
     return true;
