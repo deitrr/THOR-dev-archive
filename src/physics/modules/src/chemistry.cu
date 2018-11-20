@@ -315,8 +315,6 @@ bool chemistry::dyn_core_loop_slow_modes(const ESP &    esp,
                                          const XPlanet &planet,
                                          int            nstep,     // Step number
                                          double         time_step, // Time-step [s]
-                                         double         mu,        // Atomic mass unit [kg]
-                                         double         kb,        // Boltzmann constant [J/K]
                                          bool           HyDiff) {            // Hyperdiffusion switch
     const int LN = 16;                                             // Size of the inner region side.
     dim3      NT(esp.nl_region, esp.nl_region, 1);                 // Number of threads in a block.
@@ -407,9 +405,7 @@ bool chemistry::dyn_core_loop_slow_modes(const ESP &    esp,
 bool chemistry::dyn_core_loop_fast_modes(const ESP &    esp,
                                          const XPlanet &planet,
                                          int            nstep, // Step number
-                                         double         times, // Time-step [s]
-                                         double         mu,    // Atomic mass unit [kg]
-                                         double         kb) {          // Boltzmann constant [J/K]
+                                         double         times) {       // Time-step [s]
     const int LN = 16;                                         // Size of the inner region side.
     dim3      NT(esp.nl_region, esp.nl_region, 1);             // Number of threads in a block.
     dim3      NBPT(2, 1, ntr);                                 // Number of blocks. (POLES)
@@ -473,12 +469,8 @@ bool chemistry::dyn_core_loop_end(const ESP &esp) {
 
 bool chemistry::phy_loop(ESP &          esp,
                          const XPlanet &planet,
-                         int            nstep,     // Step number
-                         double         time_step, // Time-step [s]
-                         double         mu,        // Atomic mass unit [kg]
-                         double         kb) {
-
-
+                         int            nstep, // Step number
+                         double         time_step) {   // Time-step [s]
     const int NTH = 256;
     dim3      NBTR((esp.point_num / NTH) + 1, esp.nv, ntr);
 
@@ -531,8 +523,6 @@ bool chemistry::phy_loop(ESP &          esp,
 }
 
 bool chemistry::configure(config_file &config_reader) {
-
-
     return true;
 }
 
@@ -549,7 +539,5 @@ bool chemistry::store(const ESP &esp,
 }
 
 bool chemistry::store_init(storage &s) {
-
-
     return true;
 }

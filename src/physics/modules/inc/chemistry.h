@@ -62,18 +62,14 @@ public:
     // TODO: check if step number is needed in here
     bool dyn_core_loop_slow_modes(const ESP &    esp,
                                   const XPlanet &planet,
-                                  int            nstep, // Step number 
+                                  int            nstep,     // Step number
                                   double         time_step, // Time-step [s]
-                                  double         mu,    // Atomic mass unit [kg]
-                                  double         kb,    // Boltzmann constant [J/K]
                                   bool           HyDiff);
 
     bool dyn_core_loop_fast_modes(const ESP &    esp,
                                   const XPlanet &planet,
-                                  int            nstep,     // Step number
-                                  double         times, // Time-step [s]
-                                  double         mu,        // Atomic mass unit [kg]
-                                  double         kb);
+                                  int            nstep, // Step number
+                                  double         times);        // Time-step [s]
 
     bool dyn_core_loop_end(const ESP &esp);
 
@@ -81,10 +77,8 @@ public:
     // TBD, how does it get data? friend of ESP ? grid ?
     bool phy_loop(ESP &          esp,
                   const XPlanet &planet,
-                  int            nstep,     // Step number
-                  double         time_step, // Time-step [s]
-                  double         mu,        // Atomic mass unit [kg]
-                  double         kb);
+                  int            nstep, // Step number
+                  double         time_step);    // Time-step [s]
 
     bool store(const ESP &esp,
                storage &  s);
@@ -98,7 +92,7 @@ public:
     void print_config();
 
 private:
-    int  ntr               = 5;
+    int ntr = 5;
 
     // host array
     double *tauch4_h;

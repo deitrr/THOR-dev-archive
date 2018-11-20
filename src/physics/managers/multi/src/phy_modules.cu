@@ -101,12 +101,10 @@ bool phy_modules_dyn_core_loop_slow_modes(const ESP&     esp,
                                           const XPlanet& planet,
                                           int            nstep, // Step number
                                           double         times, // Time-step [s]
-                                          double         mu,    // Atomic mass unit [kg]
-                                          double         kb,    // Boltzmann constant [J/K]
                                           bool           HyDiff) {
 
     if (chemistry_enabled)
-        chem.dyn_core_loop_slow_modes(esp, planet, nstep, times, mu, kb, HyDiff);
+        chem.dyn_core_loop_slow_modes(esp, planet, nstep, times, HyDiff);
 
     return true;
 }
@@ -114,12 +112,10 @@ bool phy_modules_dyn_core_loop_slow_modes(const ESP&     esp,
 bool phy_modules_dyn_core_loop_fast_modes(const ESP&     esp,
                                           const XPlanet& planet,
                                           int            nstep,     // Step number
-                                          double         time_step, // Time-step [s]
-                                          double         mu,        // Atomic mass unit [kg]
-                                          double         kb) {
+                                          double         time_step) { // Time-step [s]
 
     if (chemistry_enabled)
-        chem.dyn_core_loop_fast_modes(esp, planet, nstep, time_step, mu, kb);
+        chem.dyn_core_loop_fast_modes(esp, planet, nstep, time_step);
 
     return true;
 }
@@ -136,20 +132,15 @@ bool phy_modules_dyn_core_loop_end(const ESP& esp) {
 bool phy_modules_phy_loop(ESP&           esp,
                           const XPlanet& planet,
                           int            nstep,
-                          double         time_step,
-                          double         mu,
-                          double         kb
-
-
-) {
+                          double         time_step) {
     // run all the modules main loop
     bool out = true;
 
     if (chemistry_enabled)
-        chem.phy_loop(esp, planet, nstep, time_step, mu, kb);
+        chem.phy_loop(esp, planet, nstep, time_step);
 
     if (radiative_transfer_enabled)
-        rt.phy_loop(esp, planet, nstep, time_step, mu, kb);
+        rt.phy_loop(esp, planet, nstep, time_step);
 
     return out;
 }
