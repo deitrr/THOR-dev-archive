@@ -325,80 +325,79 @@ bool chemistry::dyn_core_loop_slow_modes(const ESP &    esp,
     dim3      NBTRP(2, esp.nv, ntr);                               // Number of blocks in the diffusion routine for tracers. (POLES)
 
     if (HyDiff) {
-            // Tracers
-            // TODO: check: where should this be set to 0 ?
-            cudaMemset(esp.diff_d, 0, sizeof(double) * 6 * esp.point_num * esp.nv);
-            cudaDeviceSynchronize();
-            Tracer_Eq_Diffusion<LN, LN><<<NBTR, NT>>>(difftr_d,
-                                                      esp.diff_d,
-                                                      tracerk_d,
-                                                      esp.Rhok_d,
-                                                      esp.areasTr_d,
-                                                      esp.nvecoa_d,
-                                                      esp.nvecti_d,
-                                                      esp.nvecte_d,
-                                                      esp.Kdh4_d,
-                                                      esp.Altitude_d,
-                                                      planet.A,
-                                                      esp.maps_d,
-                                                      ntr, //
-                                                      esp.nl_region,
-                                                      0,
-                                                      esp.DeepModel);
+        // Tracers
+        // TODO: check: where should this be set to 0 ?
+        cudaMemset(esp.diff_d, 0, sizeof(double) * 6 * esp.point_num * esp.nv);
+        cudaDeviceSynchronize();
+        Tracer_Eq_Diffusion<LN, LN><<<NBTR, NT>>>(difftr_d,
+                                                  esp.diff_d,
+                                                  tracerk_d,
+                                                  esp.Rhok_d,
+                                                  esp.areasTr_d,
+                                                  esp.nvecoa_d,
+                                                  esp.nvecti_d,
+                                                  esp.nvecte_d,
+                                                  esp.Kdh4_d,
+                                                  esp.Altitude_d,
+                                                  planet.A,
+                                                  esp.maps_d,
+                                                  ntr, //
+                                                  esp.nl_region,
+                                                  0,
+                                                  esp.DeepModel);
 
-            Tracer_Eq_Diffusion_Poles<5><<<NBTRP, 1>>>(difftr_d,
-                                                       esp.diff_d,
-                                                       tracerk_d,
-                                                       esp.Rhok_d,
-                                                       esp.areasTr_d,
-                                                       esp.nvecoa_d,
-                                                       esp.nvecti_d,
-                                                       esp.nvecte_d,
-                                                       esp.Kdh4_d,
-                                                       esp.Altitude_d,
-                                                       esp.Altitudeh_d,
-                                                       planet.A,
-                                                       esp.point_local_d,
-                                                       ntr,
-                                                       esp.point_num,
-                                                       0,
-                                                       esp.DeepModel);
-            cudaDeviceSynchronize();
-            Tracer_Eq_Diffusion<LN, LN><<<NBTR, NT>>>(difftr_d,
-                                                      esp.diff_d,
-                                                      tracerk_d,
-                                                      esp.Rhok_d,
-                                                      esp.areasTr_d,
-                                                      esp.nvecoa_d,
-                                                      esp.nvecti_d,
-                                                      esp.nvecte_d,
-                                                      esp.Kdh4_d,
-                                                      esp.Altitude_d,
-                                                      planet.A,
-                                                      esp.maps_d,
-                                                      ntr, //
-                                                      esp.nl_region,
-                                                      1,
-                                                      esp.DeepModel);
+        Tracer_Eq_Diffusion_Poles<5><<<NBTRP, 1>>>(difftr_d,
+                                                   esp.diff_d,
+                                                   tracerk_d,
+                                                   esp.Rhok_d,
+                                                   esp.areasTr_d,
+                                                   esp.nvecoa_d,
+                                                   esp.nvecti_d,
+                                                   esp.nvecte_d,
+                                                   esp.Kdh4_d,
+                                                   esp.Altitude_d,
+                                                   esp.Altitudeh_d,
+                                                   planet.A,
+                                                   esp.point_local_d,
+                                                   ntr,
+                                                   esp.point_num,
+                                                   0,
+                                                   esp.DeepModel);
+        cudaDeviceSynchronize();
+        Tracer_Eq_Diffusion<LN, LN><<<NBTR, NT>>>(difftr_d,
+                                                  esp.diff_d,
+                                                  tracerk_d,
+                                                  esp.Rhok_d,
+                                                  esp.areasTr_d,
+                                                  esp.nvecoa_d,
+                                                  esp.nvecti_d,
+                                                  esp.nvecte_d,
+                                                  esp.Kdh4_d,
+                                                  esp.Altitude_d,
+                                                  planet.A,
+                                                  esp.maps_d,
+                                                  ntr, //
+                                                  esp.nl_region,
+                                                  1,
+                                                  esp.DeepModel);
 
-            Tracer_Eq_Diffusion_Poles<5><<<NBTRP, 1>>>(difftr_d,
-                                                       esp.diff_d,
-                                                       tracerk_d,
-                                                       esp.Rhok_d,
-                                                       esp.areasTr_d,
-                                                       esp.nvecoa_d,
-                                                       esp.nvecti_d,
-                                                       esp.nvecte_d,
-                                                       esp.Kdh4_d,
-                                                       esp.Altitude_d,
-                                                       esp.Altitudeh_d,
-                                                       planet.A,
-                                                       esp.point_local_d,
-                                                       ntr,
-                                                       esp.point_num,
-                                                       1,
-                                                       esp.DeepModel);
-        
+        Tracer_Eq_Diffusion_Poles<5><<<NBTRP, 1>>>(difftr_d,
+                                                   esp.diff_d,
+                                                   tracerk_d,
+                                                   esp.Rhok_d,
+                                                   esp.areasTr_d,
+                                                   esp.nvecoa_d,
+                                                   esp.nvecti_d,
+                                                   esp.nvecte_d,
+                                                   esp.Kdh4_d,
+                                                   esp.Altitude_d,
+                                                   esp.Altitudeh_d,
+                                                   planet.A,
+                                                   esp.point_local_d,
+                                                   ntr,
+                                                   esp.point_num,
+                                                   1,
+                                                   esp.DeepModel);
     }
 
 
@@ -418,49 +417,48 @@ bool chemistry::dyn_core_loop_fast_modes(const ESP &    esp,
     dim3      NBTRP(2, esp.nv, ntr);                           // Number of blocks in the diffusion routine for tracers. (POLES)
 
 
+    //
+    // Tracer equation.
+    cudaDeviceSynchronize();
+    Tracer_Eq<LN, LN><<<NBTR, NT>>>(tracers_d,
+                                    tracerk_d,
+                                    esp.Rhos_d,
+                                    esp.Rhok_d,
+                                    esp.Mhs_d,
+                                    esp.Mhk_d,
+                                    esp.Whs_d,
+                                    esp.Whk_d,
+                                    difftr_d,
+                                    esp.div_d,
+                                    esp.Altitude_d,
+                                    esp.Altitudeh_d,
+                                    planet.A,
+                                    times,
+                                    esp.maps_d,
+                                    ntr,
+                                    esp.nl_region,
+                                    esp.DeepModel);
 
-        //
-        // Tracer equation.
-        cudaDeviceSynchronize();
-        Tracer_Eq<LN, LN><<<NBTR, NT>>>(tracers_d,
-                                        tracerk_d,
-                                        esp.Rhos_d,
-                                        esp.Rhok_d,
-                                        esp.Mhs_d,
-                                        esp.Mhk_d,
-                                        esp.Whs_d,
-                                        esp.Whk_d,
-                                        difftr_d,
-                                        esp.div_d,
-                                        esp.Altitude_d,
-                                        esp.Altitudeh_d,
-                                        planet.A,
-                                        times,
-                                        esp.maps_d,
-                                        ntr,
-                                        esp.nl_region,
-                                        esp.DeepModel);
+    Tracer_Eq_Poles<6><<<NBPT, 1>>>(tracers_d,
+                                    tracerk_d,
+                                    esp.Rhos_d,
+                                    esp.Rhok_d,
+                                    esp.Mhs_d,
+                                    esp.Mhk_d,
+                                    esp.Whs_d,
+                                    esp.Whk_d,
+                                    difftr_d,
+                                    esp.div_d,
+                                    esp.Altitude_d,
+                                    esp.Altitudeh_d,
+                                    planet.A,
+                                    times,
+                                    esp.point_local_d,
+                                    ntr,
+                                    esp.point_num,
+                                    esp.nv,
+                                    esp.DeepModel);
 
-        Tracer_Eq_Poles<6><<<NBPT, 1>>>(tracers_d,
-                                        tracerk_d,
-                                        esp.Rhos_d,
-                                        esp.Rhok_d,
-                                        esp.Mhs_d,
-                                        esp.Mhk_d,
-                                        esp.Whs_d,
-                                        esp.Whk_d,
-                                        difftr_d,
-                                        esp.div_d,
-                                        esp.Altitude_d,
-                                        esp.Altitudeh_d,
-                                        planet.A,
-                                        times,
-                                        esp.point_local_d,
-                                        ntr,
-                                        esp.point_num,
-                                        esp.nv,
-                                        esp.DeepModel);
-    
     return true;
 }
 
@@ -487,28 +485,8 @@ bool chemistry::phy_loop(ESP &          esp,
     //
     ////////////////////////
     // Simple chemistry
-        cudaDeviceSynchronize();
-        Tracers_relax_chemistry_co2<<<NBTR, NTH>>>(tracer_d,
-                                                   tauch4_d,
-                                                   tauco_d,
-                                                   tauh2o_d,
-                                                   tauco2_d,
-                                                   taunh3_d,
-                                                   ch4eq_d,
-                                                   coeq_d,
-                                                   h2oeq_d,
-                                                   co2eq_d,
-                                                   nh3eq_d,
-                                                   P_che_d,
-                                                   T_che_d,
-                                                   esp.temperature_d,
-                                                   esp.pressure_d,
-                                                   esp.Rho_d,
-                                                   time_step,
-                                                   ntr,
-                                                   esp.point_num);
-        cudaDeviceSynchronize();
-        Tracers_relax_chemistry<<<NBTR, NTH>>>(tracer_d,
+    cudaDeviceSynchronize();
+    Tracers_relax_chemistry_co2<<<NBTR, NTH>>>(tracer_d,
                                                tauch4_d,
                                                tauco_d,
                                                tauh2o_d,
@@ -527,7 +505,26 @@ bool chemistry::phy_loop(ESP &          esp,
                                                time_step,
                                                ntr,
                                                esp.point_num);
-    
+    cudaDeviceSynchronize();
+    Tracers_relax_chemistry<<<NBTR, NTH>>>(tracer_d,
+                                           tauch4_d,
+                                           tauco_d,
+                                           tauh2o_d,
+                                           tauco2_d,
+                                           taunh3_d,
+                                           ch4eq_d,
+                                           coeq_d,
+                                           h2oeq_d,
+                                           co2eq_d,
+                                           nh3eq_d,
+                                           P_che_d,
+                                           T_che_d,
+                                           esp.temperature_d,
+                                           esp.pressure_d,
+                                           esp.Rho_d,
+                                           time_step,
+                                           ntr,
+                                           esp.point_num);
 
 
     return true;
@@ -541,12 +538,12 @@ bool chemistry::configure(config_file &config_reader) {
 
 bool chemistry::store(const ESP &esp,
                       storage &  s) {
-        cudaMemcpy(tracer_h, tracer_d, esp.point_num * esp.nv * ntr * sizeof(double), cudaMemcpyDeviceToHost);
-        s.append_table(tracer_h,
-                       esp.nv * esp.point_num * ntr,
-                       "/tracer",
-                       " ",
-                       "Volume mixing ratio");
+    cudaMemcpy(tracer_h, tracer_d, esp.point_num * esp.nv * ntr * sizeof(double), cudaMemcpyDeviceToHost);
+    s.append_table(tracer_h,
+                   esp.nv * esp.point_num * ntr,
+                   "/tracer",
+                   " ",
+                   "Volume mixing ratio");
 
     return true;
 }
