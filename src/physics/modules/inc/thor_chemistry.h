@@ -25,6 +25,8 @@
 // 1.0    ...
 //
 ////////////////////////////////////////////////////////////////////////
+#include "kernel_halo_helpers.h"
+
 template<int NX, int NY>
 __global__ void Tracer_Eq(double *tracers_d,
                           double *tracerk_d,
@@ -47,7 +49,6 @@ __global__ void Tracer_Eq(double *tracers_d,
 
     int x   = threadIdx.x;
     int y   = threadIdx.y;
-    int ib  = blockIdx.x;
     int nv  = gridDim.y;
     int lev = blockIdx.y;
     int itr = blockIdx.z;
@@ -57,15 +58,9 @@ __global__ void Tracer_Eq(double *tracers_d,
     int    nhl  = nl_region + 2;
     int    nhl2 = nhl * nhl;
 
-    int ir = (y + 1) * nhl + x + 1; // Region index
-    int iri, ir2, twot;
-
     __shared__ double nflxtr_s[NX * NY];
     __shared__ double v1_s[3 * (NX + 2) * (NY + 2)];
     __shared__ double tr_s[(NX + 2) * (NY + 2)];
-
-    int pent_ind = 0;
-    int ig, id;
 
     double xi, xim1, xip1;
     double a, b;
@@ -79,11 +74,23 @@ __global__ void Tracer_Eq(double *tracers_d,
     double altht, althl;
     double dtr_dalt;
 
+
+    int ir = 0; // index in region
+    int iri, ir2, id;
+
+
+    bool pent_ind = false; //
+    int  ig;               // index in global mem
+
+    int igh = 0; // global index in halo
+
     // Load shared memory
-    ig = maps_d[ib * nhl2 + ir];
-    id = ig;
-    if (x == 0 && y == 0)
-        if (maps_d[ib * nhl2] == -1) pent_ind = 1;
+
+
+    bool load_halo = compute_mem_idx(maps_d, nhl, nhl2, ig, igh, ir, ir2, pent_ind);
+    id             = ig;
+
+
     v1_s[ir * 3 + 0] = Mh_d[ig * 3 * nv + lev * 3 + 0] + Mhk_d[ig * 3 * nv + lev * 3 + 0];
     v1_s[ir * 3 + 1] = Mh_d[ig * 3 * nv + lev * 3 + 1] + Mhk_d[ig * 3 * nv + lev * 3 + 1];
     v1_s[ir * 3 + 2] = Mh_d[ig * 3 * nv + lev * 3 + 2] + Mhk_d[ig * 3 * nv + lev * 3 + 2];
@@ -93,56 +100,18 @@ __global__ void Tracer_Eq(double *tracers_d,
     ///////////////////////////////
     //////////// Halo /////////////
     ///////////////////////////////
-    if (x == 0) {
-        ir2               = (y + 1) * nhl + x;
-        ig                = maps_d[ib * nhl2 + ir2];
-        v1_s[ir2 * 3 + 0] = Mh_d[ig * 3 * nv + lev * 3 + 0] + Mhk_d[ig * 3 * nv + lev * 3 + 0];
-        v1_s[ir2 * 3 + 1] = Mh_d[ig * 3 * nv + lev * 3 + 1] + Mhk_d[ig * 3 * nv + lev * 3 + 1];
-        v1_s[ir2 * 3 + 2] = Mh_d[ig * 3 * nv + lev * 3 + 2] + Mhk_d[ig * 3 * nv + lev * 3 + 2];
-        tr_s[ir2]         = tracerk_d[ig * nv * ntr + lev * ntr + itr] / Rhok_d[ig * nv + lev];
-    }
-    if (x == nhl - 3) {
-        ir2               = (y + 1) * nhl + x + 2;
-        ig                = maps_d[ib * nhl2 + ir2];
-        v1_s[ir2 * 3 + 0] = Mh_d[ig * 3 * nv + lev * 3 + 0] + Mhk_d[ig * 3 * nv + lev * 3 + 0];
-        v1_s[ir2 * 3 + 1] = Mh_d[ig * 3 * nv + lev * 3 + 1] + Mhk_d[ig * 3 * nv + lev * 3 + 1];
-        v1_s[ir2 * 3 + 2] = Mh_d[ig * 3 * nv + lev * 3 + 2] + Mhk_d[ig * 3 * nv + lev * 3 + 2];
-        tr_s[ir2]         = tracerk_d[ig * nv * ntr + lev * ntr + itr] / Rhok_d[ig * nv + lev];
-    }
-    if (y == 0) {
-        twot = 1;
-        ir2  = y * nhl + (x + 1);
-        if (x == 0) twot = 2;
-
-        for (int k = 0; k < twot; k++) {
-            if (k == 1) ir2 = y * nhl + x;
-            ig = maps_d[ib * nhl2 + ir2];
-
-            if (ig >= 0) {
-                v1_s[ir2 * 3 + 0] = Mh_d[ig * 3 * nv + lev * 3 + 0] + Mhk_d[ig * 3 * nv + lev * 3 + 0];
-                v1_s[ir2 * 3 + 1] = Mh_d[ig * 3 * nv + lev * 3 + 1] + Mhk_d[ig * 3 * nv + lev * 3 + 1];
-                v1_s[ir2 * 3 + 2] = Mh_d[ig * 3 * nv + lev * 3 + 2] + Mhk_d[ig * 3 * nv + lev * 3 + 2];
-                tr_s[ir2]         = tracerk_d[ig * nv * ntr + lev * ntr + itr] / Rhok_d[ig * nv + lev];
-            }
-            else {
-                v1_s[ir2 * 3 + 0] = 0.0;
-                v1_s[ir2 * 3 + 1] = 0.0;
-                v1_s[ir2 * 3 + 2] = 0.0;
-                tr_s[ir2]         = 0.0;
-            }
+    if (load_halo) {
+        if (igh >= 0) {
+            v1_s[ir2 * 3 + 0] = Mh_d[igh * 3 * nv + lev * 3 + 0] + Mhk_d[igh * 3 * nv + lev * 3 + 0];
+            v1_s[ir2 * 3 + 1] = Mh_d[igh * 3 * nv + lev * 3 + 1] + Mhk_d[igh * 3 * nv + lev * 3 + 1];
+            v1_s[ir2 * 3 + 2] = Mh_d[igh * 3 * nv + lev * 3 + 2] + Mhk_d[igh * 3 * nv + lev * 3 + 2];
+            tr_s[ir2]         = tracerk_d[igh * nv * ntr + lev * ntr + itr] / Rhok_d[igh * nv + lev];
         }
-    }
-    if (y == nhl - 3) {
-        twot = 1;
-        ir2  = (y + 2) * nhl + (x + 1);
-        if (x == nhl - 3) twot = 2;
-        for (int k = 0; k < twot; k++) {
-            if (k == 1) ir2 = (y + 2) * nhl + (x + 2);
-            ig                = maps_d[ib * nhl2 + ir2];
-            v1_s[ir2 * 3 + 0] = Mh_d[ig * 3 * nv + lev * 3 + 0] + Mhk_d[ig * 3 * nv + lev * 3 + 0];
-            v1_s[ir2 * 3 + 1] = Mh_d[ig * 3 * nv + lev * 3 + 1] + Mhk_d[ig * 3 * nv + lev * 3 + 1];
-            v1_s[ir2 * 3 + 2] = Mh_d[ig * 3 * nv + lev * 3 + 2] + Mhk_d[ig * 3 * nv + lev * 3 + 2];
-            tr_s[ir2]         = tracerk_d[ig * nv * ntr + lev * ntr + itr] / Rhok_d[ig * nv + lev];
+        else {
+            v1_s[ir2 * 3 + 0] = 0.0;
+            v1_s[ir2 * 3 + 1] = 0.0;
+            v1_s[ir2 * 3 + 2] = 0.0;
+            tr_s[ir2]         = 0.0;
         }
     }
     __syncthreads();
@@ -411,14 +380,13 @@ __global__ void Tracer_Eq_Diffusion(double *difftr_d,   //
 
     int x   = threadIdx.x;
     int y   = threadIdx.y;
-    int ib  = blockIdx.x;
     int nv  = gridDim.y;
     int lev = blockIdx.y;
     int var = blockIdx.z;
 
     int nhl  = nl_region + 2;
     int nhl2 = nhl * nhl;
-    int pt1, pt2, pt3, twot;
+    int pt1, pt2, pt3;
 
     double alt;
     double rscale;
@@ -431,22 +399,30 @@ __global__ void Tracer_Eq_Diffusion(double *difftr_d,   //
         lapy1, lapy2,
         lapz1, lapz2;
 
-    int ir = (y + 1) * nhl + (x + 1); // Region index
-    int ir2, id, jp1, jp2;
+    int jp1, jp2;
 
     /////////////////////////////////////////
     __shared__ double a_s[(NX + 2) * (NY + 2)];
     __shared__ double Rho_s[(NX + 2) * (NY + 2)];
     /////////////////////////////////////////
 
-    bool pent_ind;
-    int  ig;
 
-    ig       = maps_d[ib * nhl2 + ir];
-    id       = ig;
-    pent_ind = 0;
-    if (x == 0 && y == 0)
-        if (maps_d[ib * nhl2] == -1) pent_ind = 1;
+    int ir = 0; // index in region
+    int ir2, id;
+
+
+    bool pent_ind = false; //
+    int  ig;               // index in global mem
+
+    int igh = 0; // global index in halo
+
+    // Load shared memory
+
+
+    bool load_halo = compute_mem_idx(maps_d, nhl, nhl2, ig, igh, ir, ir2, pent_ind);
+    id             = ig;
+
+
     int n_faces = (pent_ind ? 5 : 6);
 
     Rho_s[ir] = Rho_d[ig * nv + lev];
@@ -454,39 +430,14 @@ __global__ void Tracer_Eq_Diffusion(double *difftr_d,   //
     ///////////////////////////////
     //////////// Halo /////////////
     ///////////////////////////////
-    if (x == 0) {
-        ir2        = (y + 1) * nhl + x;
-        ig         = maps_d[ib * nhl2 + ir2];
-        Rho_s[ir2] = Rho_d[ig * nv + lev];
-    }
-    if (x == nhl - 3) {
-        ir2        = (y + 1) * nhl + x + 2;
-        ig         = maps_d[ib * nhl2 + ir2];
-        Rho_s[ir2] = Rho_d[ig * nv + lev];
-    }
-    if (y == 0) {
-        twot = 1;
-        ir2  = y * nhl + (x + 1);
-        if (x == 0) twot = 2;
-        for (int k = 0; k < twot; k++) {
-            if (k == 1) ir2 = y * nhl + x;
-            ig = maps_d[ib * nhl2 + ir2];
-            if (ig >= 0)
-                Rho_s[ir2] = Rho_d[ig * nv + lev];
-            else
-                Rho_s[ir2] = 0.0;
+    if (load_halo) {
+        if (igh >= 0) {
+            Rho_s[ir2] = Rho_d[igh * nv + lev];
         }
+        else
+            Rho_s[ir2] = 0.0;
     }
-    if (y == nhl - 3) {
-        twot = 1;
-        ir2  = (y + 2) * nhl + (x + 1);
-        if (x == nhl - 3) twot = 2;
-        for (int k = 0; k < twot; k++) {
-            if (k == 1) ir2 = (y + 2) * nhl + (x + 2);
-            ig         = maps_d[ib * nhl2 + ir2];
-            Rho_s[ir2] = Rho_d[ig * nv + lev];
-        }
-    }
+
     __syncthreads();
     //////////////////////////////////////////////
     if (laststep)
@@ -499,60 +450,19 @@ __global__ void Tracer_Eq_Diffusion(double *difftr_d,   //
     ///////////////////////////////
     //////////// Halo /////////////
     ///////////////////////////////
-    if (x == 0) {
-        ir2 = (y + 1) * nhl + x;
-        ig  = maps_d[ib * nhl2 + ir2];
-        if (laststep)
-            a_s[ir2] = diff_d[ig * nv * 6 + lev * 6 + var];
-        else
-            a_s[ir2] = tracer_d[ig * nv * ntr + lev * ntr + var];
-
-        if (!laststep) a_s[ir2] = a_s[ir2] / Rho_s[ir2];
-    }
-    if (x == nhl - 3) {
-        ir2 = (y + 1) * nhl + x + 2;
-        ig  = maps_d[ib * nhl2 + ir2];
-        if (laststep)
-            a_s[ir2] = diff_d[ig * nv * 6 + lev * 6 + var];
-        else
-            a_s[ir2] = tracer_d[ig * nv * ntr + lev * ntr + var];
-
-        if (!laststep) a_s[ir2] = a_s[ir2] / Rho_s[ir2];
-    }
-    if (y == 0) {
-        twot = 1;
-        ir2  = y * nhl + (x + 1);
-        if (x == 0) twot = 2;
-        for (int k = 0; k < twot; k++) {
-            if (k == 1) ir2 = y * nhl + x;
-            ig = maps_d[ib * nhl2 + ir2];
-            if (ig >= 0) {
-                if (laststep)
-                    a_s[ir2] = diff_d[ig * nv * 6 + lev * 6 + var];
-                else
-                    a_s[ir2] = tracer_d[ig * nv * ntr + lev * ntr + var];
-
-                if (!laststep) a_s[ir2] = a_s[ir2] / Rho_s[ir2];
-            }
-            else
-                a_s[ir2] = 0.0;
-        }
-    }
-    if (y == nhl - 3) {
-        twot = 1;
-        ir2  = (y + 2) * nhl + (x + 1);
-        if (x == nhl - 3) twot = 2;
-        for (int k = 0; k < twot; k++) {
-            if (k == 1) ir2 = (y + 2) * nhl + (x + 2);
-            ig = maps_d[ib * nhl2 + ir2];
+    if (load_halo) {
+        if (igh >= 0) {
             if (laststep)
-                a_s[ir2] = diff_d[ig * nv * 6 + lev * 6 + var];
+                a_s[ir2] = diff_d[igh * nv * 6 + lev * 6 + var];
             else
-                a_s[ir2] = tracer_d[ig * nv * ntr + lev * ntr + var];
+                a_s[ir2] = tracer_d[igh * nv * ntr + lev * ntr + var];
 
             if (!laststep) a_s[ir2] = a_s[ir2] / Rho_s[ir2];
         }
+        else
+            a_s[ir2] = 0.0;
     }
+
     __syncthreads();
     //////////////////////////////////////////////
 
