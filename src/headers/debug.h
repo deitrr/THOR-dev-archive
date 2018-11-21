@@ -49,11 +49,16 @@
 // ***************************************
 // * binary comparison
 // compare benchmark point to references
-// #define BENCH_POINT_COMPARE
+#define BENCH_POINT_COMPARE
 // write reference benchmark point
-#define BENCH_POINT_WRITE
+// #define BENCH_POINT_WRITE
 // print out more debug info, by default, only print out failures
 //#define BENCH_PRINT_DEBUG
+// print out comparisaon statistics
+//#define BENCH_COMPARE_PRINT_STATISTICS
+// use an epsilon value for fuzzy compare on relative value
+// #define BENCH_COMPARE_USE_EPSILON
+// #define BENCH_COMPARE_EPSILON_VALUE 1e-7
 // ***************************************
 // * check for NaNs
 // #define BENCH_NAN_CHECK
