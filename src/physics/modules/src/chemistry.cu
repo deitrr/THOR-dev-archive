@@ -59,6 +59,8 @@ chemistry::~chemistry() {
 
 void chemistry::print_config() {
     printf("  Chemistry module\n");
+    printf("    chem_times_filename: %s.\n", chem_time_filename.c_str());
+    printf("    fEQ_filename: %s.\n", fEQ_filename.c_str());    
 }
 
 bool chemistry::initialise_memory(const ESP &              esp,
@@ -179,10 +181,10 @@ bool chemistry::initial_conditions(const ESP &            esp,
     double dummy;
 
 
-    // TODO: find where to store the startup files
-    infile1 = fopen("ifile/solar_fEQ_THOR.txt", "r");
+   
+    infile1 = fopen(chem_time_filename.c_str(), "r");
     if (infile1 == NULL) {
-        printf("\nUnable to open input file.\n");
+        printf("\nUnable to open input file %s.\n", chem_time_filename.c_str());
         exit(EXIT_FAILURE);
     }
     for (int i = 0; i < NT; i++) {
@@ -197,7 +199,7 @@ bool chemistry::initial_conditions(const ESP &            esp,
                        &co2eq_h[j * NT + i],
                        &nh3eq_h[j * NT + i])
                 != 7) {
-                printf("error parsing ifile/solar_fEQ_THOR.txt\n");
+                printf("error parsing %s.\n", chem_time_filename.c_str());
                 fclose(infile1);
                 return false;
             }
@@ -208,9 +210,9 @@ bool chemistry::initial_conditions(const ESP &            esp,
     fclose(infile1);
 
 
-    infile1 = fopen("ifile/solar_chem_time.txt", "r");
+    infile1 = fopen(fEQ_filename.c_str(), "r");
     if (infile1 == NULL) {
-        printf("\nUnable to open input file.\n");
+        printf("\nUnable to open input file %s.\n", fEQ_filename.c_str());
         return false;
     }
     for (int i = 0; i < NT; i++) {
@@ -228,7 +230,7 @@ bool chemistry::initial_conditions(const ESP &            esp,
                        &taunh3_h[j * NT + i],
                        &dummy)
                 != 10) {
-                printf("error parsing ifile/solar_chem_time.txt\n");
+                printf("error parsing %s.\n", fEQ_filename.c_str());
                 fclose(infile1);
                 return false;
             }
@@ -524,6 +526,9 @@ bool chemistry::phy_loop(ESP &                  esp,
 }
 
 bool chemistry::configure(config_file &config_reader) {
+
+    config_reader.append_config_var("chem_times_file", chem_time_filename, std::string("NoFilename.txt"));
+    config_reader.append_config_var("chem_fEQ_file", fEQ_filename, std::string("NoFilename.txt"));
     return true;
 }
 
