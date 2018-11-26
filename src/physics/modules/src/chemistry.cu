@@ -119,8 +119,8 @@ bool chemistry::initialise_memory(const ESP &              esp,
             {"tracerk_d", {tracerk_d, esp.nv * esp.point_num * ntr, "RK tracerk", "tk", true}}};
 
     std::vector<std::string> output_vars = {"tracer_d", "tracers_d", "tracerk_d"};
-    
-        
+
+
     binary_test::get_instance().register_phy_modules_variables(defs, std::vector<std::string>(), output_vars);
 
 #endif // BENCHMARING
@@ -170,8 +170,8 @@ bool chemistry::free_memory() {
     return true;
 }
 
-bool chemistry::initial_conditions(const ESP &    esp,
-                                   const XPlanet &planet) {
+bool chemistry::initial_conditions(const ESP &            esp,
+                                   const SimulationSetup &sim) {
     // Input for chemistry
     FILE * infile1;
     int    NT = 55;
@@ -313,18 +313,17 @@ bool chemistry::dyn_core_loop_init(const ESP &esp) {
     return true;
 }
 
-bool chemistry::dyn_core_loop_slow_modes(const ESP &    esp,
-                                         const XPlanet &planet,
-                                         int            nstep,     // Step number
-                                         double         time_step, // Time-step [s]
-                                         bool           HyDiff) {            // Hyperdiffusion switch
-    const int LN = 16;                                             // Size of the inner region side.
-    dim3      NT(esp.nl_region, esp.nl_region, 1);                 // Number of threads in a block.
-    dim3      NBPT(2, 1, ntr);                                     // Number of blocks. (POLES)
-    dim3      NBTR(esp.nr, esp.nv, ntr);                           // Number of blocks in the diffusion routine for tracers.
-    dim3      NBTRP(2, esp.nv, ntr);                               // Number of blocks in the diffusion routine for tracers. (POLES)
+bool chemistry::dyn_core_loop_slow_modes(const ESP &            esp,
+                                         const SimulationSetup &sim,
+                                         int                    nstep, // Step number
+                                         double                 time_step) {           // Time-step [s]
+    const int LN = 16;                                                 // Size of the inner region side.
+    dim3      NT(esp.nl_region, esp.nl_region, 1);                     // Number of threads in a block.
+    dim3      NBPT(2, 1, ntr);                                         // Number of blocks. (POLES)
+    dim3      NBTR(esp.nr, esp.nv, ntr);                               // Number of blocks in the diffusion routine for tracers.
+    dim3      NBTRP(2, esp.nv, ntr);                                   // Number of blocks in the diffusion routine for tracers. (POLES)
 
-    if (HyDiff) {
+    if (sim.HyDiff) {
         // Tracers
         // TODO: check: where should this be set to 0 ?
         cudaMemset(esp.diff_d, 0, sizeof(double) * 6 * esp.point_num * esp.nv);
@@ -339,12 +338,12 @@ bool chemistry::dyn_core_loop_slow_modes(const ESP &    esp,
                                                   esp.nvecte_d,
                                                   esp.Kdh4_d,
                                                   esp.Altitude_d,
-                                                  planet.A,
+                                                  sim.A,
                                                   esp.maps_d,
                                                   ntr, //
                                                   esp.nl_region,
                                                   0,
-                                                  esp.DeepModel);
+                                                  sim.DeepModel);
 
         Tracer_Eq_Diffusion_Poles<5><<<NBTRP, 1>>>(difftr_d,
                                                    esp.diff_d,
@@ -357,12 +356,12 @@ bool chemistry::dyn_core_loop_slow_modes(const ESP &    esp,
                                                    esp.Kdh4_d,
                                                    esp.Altitude_d,
                                                    esp.Altitudeh_d,
-                                                   planet.A,
+                                                   sim.A,
                                                    esp.point_local_d,
                                                    ntr,
                                                    esp.point_num,
                                                    0,
-                                                   esp.DeepModel);
+                                                   sim.DeepModel);
         cudaDeviceSynchronize();
         Tracer_Eq_Diffusion<LN, LN><<<NBTR, NT>>>(difftr_d,
                                                   esp.diff_d,
@@ -374,12 +373,12 @@ bool chemistry::dyn_core_loop_slow_modes(const ESP &    esp,
                                                   esp.nvecte_d,
                                                   esp.Kdh4_d,
                                                   esp.Altitude_d,
-                                                  planet.A,
+                                                  sim.A,
                                                   esp.maps_d,
                                                   ntr, //
                                                   esp.nl_region,
                                                   1,
-                                                  esp.DeepModel);
+                                                  sim.DeepModel);
 
         Tracer_Eq_Diffusion_Poles<5><<<NBTRP, 1>>>(difftr_d,
                                                    esp.diff_d,
@@ -392,27 +391,27 @@ bool chemistry::dyn_core_loop_slow_modes(const ESP &    esp,
                                                    esp.Kdh4_d,
                                                    esp.Altitude_d,
                                                    esp.Altitudeh_d,
-                                                   planet.A,
+                                                   sim.A,
                                                    esp.point_local_d,
                                                    ntr,
                                                    esp.point_num,
                                                    1,
-                                                   esp.DeepModel);
+                                                   sim.DeepModel);
     }
 
 
     return true;
 }
 
-bool chemistry::dyn_core_loop_fast_modes(const ESP &    esp,
-                                         const XPlanet &planet,
-                                         int            nstep, // Step number
-                                         double         times) {       // Time-step [s]
-    const int LN = 16;                                         // Size of the inner region side.
-    dim3      NT(esp.nl_region, esp.nl_region, 1);             // Number of threads in a block.
-    dim3      NBPT(2, 1, ntr);                                 // Number of blocks. (POLES)
-    dim3      NBTR(esp.nr, esp.nv, ntr);                       // Number of blocks in the diffusion routine for tracers.
-    dim3      NBTRP(2, esp.nv, ntr);                           // Number of blocks in the diffusion routine for tracers. (POLES)
+bool chemistry::dyn_core_loop_fast_modes(const ESP &            esp,
+                                         const SimulationSetup &sim,
+                                         int                    nstep, // Step number
+                                         double                 times) {               // Time-step [s]
+    const int LN = 16;                                                 // Size of the inner region side.
+    dim3      NT(esp.nl_region, esp.nl_region, 1);                     // Number of threads in a block.
+    dim3      NBPT(2, 1, ntr);                                         // Number of blocks. (POLES)
+    dim3      NBTR(esp.nr, esp.nv, ntr);                               // Number of blocks in the diffusion routine for tracers.
+    dim3      NBTRP(2, esp.nv, ntr);                                   // Number of blocks in the diffusion routine for tracers. (POLES)
 
 
     //
@@ -430,12 +429,12 @@ bool chemistry::dyn_core_loop_fast_modes(const ESP &    esp,
                                     esp.div_d,
                                     esp.Altitude_d,
                                     esp.Altitudeh_d,
-                                    planet.A,
+                                    sim.A,
                                     times,
                                     esp.maps_d,
                                     ntr,
                                     esp.nl_region,
-                                    esp.DeepModel);
+                                    sim.DeepModel);
 
     Tracer_Eq_Poles<6><<<NBPT, 1>>>(tracers_d,
                                     tracerk_d,
@@ -449,13 +448,13 @@ bool chemistry::dyn_core_loop_fast_modes(const ESP &    esp,
                                     esp.div_d,
                                     esp.Altitude_d,
                                     esp.Altitudeh_d,
-                                    planet.A,
+                                    sim.A,
                                     times,
                                     esp.point_local_d,
                                     ntr,
                                     esp.point_num,
                                     esp.nv,
-                                    esp.DeepModel);
+                                    sim.DeepModel);
 
     return true;
 }
@@ -469,10 +468,10 @@ bool chemistry::dyn_core_loop_end(const ESP &esp) {
 }
 
 
-bool chemistry::phy_loop(ESP &          esp,
-                         const XPlanet &planet,
-                         int            nstep, // Step number
-                         double         time_step) {   // Time-step [s]
+bool chemistry::phy_loop(ESP &                  esp,
+                         const SimulationSetup &sim,
+                         int                    nstep, // Step number
+                         double                 time_step) {           // Time-step [s]
     const int NTH = 256;
     dim3      NBTR((esp.point_num / NTH) + 1, esp.nv, ntr);
 

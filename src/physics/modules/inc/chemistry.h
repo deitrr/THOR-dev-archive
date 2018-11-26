@@ -54,31 +54,31 @@ public:
 
     bool initialise_memory(const ESP &              esp,
                            device_RK_array_manager &phy_modules_core_arrays);
-    bool initial_conditions(const ESP &    esp,
-                            const XPlanet &planet);
+    bool initial_conditions(const ESP &            esp,
+                            const SimulationSetup &sim);
 
     bool dyn_core_loop_init(const ESP &esp);
 
     // TODO: check if step number is needed in here
-    bool dyn_core_loop_slow_modes(const ESP &    esp,
-                                  const XPlanet &planet,
-                                  int            nstep,     // Step number
-                                  double         time_step, // Time-step [s]
-                                  bool           HyDiff);
+    bool dyn_core_loop_slow_modes(const ESP &            esp,
+                                  const SimulationSetup &sim,
+                                  int                    nstep, // Step number
+                                  double                 time_step);            // Time-step [s]
 
-    bool dyn_core_loop_fast_modes(const ESP &    esp,
-                                  const XPlanet &planet,
-                                  int            nstep, // Step number
-                                  double         times);        // Time-step [s]
+
+    bool dyn_core_loop_fast_modes(const ESP &            esp,
+                                  const SimulationSetup &sim,
+                                  int                    nstep, // Step number
+                                  double                 times);                // Time-step [s]
 
     bool dyn_core_loop_end(const ESP &esp);
 
 
     // TBD, how does it get data? friend of ESP ? grid ?
-    bool phy_loop(ESP &          esp,
-                  const XPlanet &planet,
-                  int            nstep, // Step number
-                  double         time_step);    // Time-step [s]
+    bool phy_loop(ESP &                  esp,
+                  const SimulationSetup &sim,
+                  int                    nstep, // Step number
+                  double                 time_step);            // Time-step [s]
 
     bool store(const ESP &esp,
                storage &  s);
