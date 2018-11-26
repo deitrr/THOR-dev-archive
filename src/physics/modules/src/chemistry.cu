@@ -190,7 +190,6 @@ bool chemistry::initial_conditions(const ESP &            esp,
     }
     
     infile1 = fopen(chem_time_filename.c_str(), "r");
-//    infile1 = fopen("src/phy/modules/ifile/solar_chem_time.txt", "r");
     if (infile1 == NULL) {
         printf("\nUnable to open chem time input file %s.\n", chem_time_filename.c_str());
         exit(EXIT_FAILURE);
