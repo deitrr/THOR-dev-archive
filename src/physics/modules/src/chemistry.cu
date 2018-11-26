@@ -182,18 +182,21 @@ bool chemistry::initial_conditions(const ESP &            esp,
     double dummy;
 
 
-    printf("Chemistry: Loading chem time file: %s.\n", chem_time_filename.c_str());
-    if (!path_exists(chem_time_filename))
+
+    
+    printf("Chemistry: Loading fEQ file: %s.\n", fEQ_filename.c_str());
+    if (!path_exists(fEQ_filename))
     {
-        printf("\nchem time input file %s does not exist.\n", chem_time_filename.c_str());
+        printf("\nfEQ input file %s does not exist.\n", fEQ_filename.c_str());
         exit(EXIT_FAILURE);
     }
     
-    infile1 = fopen(chem_time_filename.c_str(), "r");
+    infile1 = fopen(fEQ_filename.c_str(), "r");
     if (infile1 == NULL) {
-        printf("\nUnable to open chem time input file %s.\n", chem_time_filename.c_str());
-        exit(EXIT_FAILURE);
+        printf("\nUnable to open fEQ input file %s.\n", fEQ_filename.c_str());
+        return false;
     }
+    
     for (int i = 0; i < NT; i++) {
         for (int j = 0; j < NP; j++) {
             if (fscanf(infile1,
@@ -206,29 +209,28 @@ bool chemistry::initial_conditions(const ESP &            esp,
                        &co2eq_h[j * NT + i],
                        &nh3eq_h[j * NT + i])
                 != 7) {
-                printf("error parsing chem time file: %s.\n", chem_time_filename.c_str());
+                printf("error parsing chem time file: %s.\n", fEQ_filename.c_str());
                 fclose(infile1);
                 return false;
             }
         }
     }
-
-
+    
     fclose(infile1);
 
-    printf("Chemistry: Loading fEQ file: %s.\n", fEQ_filename.c_str());
-    if (!path_exists(fEQ_filename))
+    printf("Chemistry: Loading chem time file: %s.\n", chem_time_filename.c_str());
+    if (!path_exists(chem_time_filename))
     {
-        printf("\nfEQ input file %s does not exist.\n", fEQ_filename.c_str());
+        printf("\nchem time input file %s does not exist.\n", chem_time_filename.c_str());
         exit(EXIT_FAILURE);
     }
-
-        
-    infile1 = fopen(fEQ_filename.c_str(), "r");
+    
+    infile1 = fopen(chem_time_filename.c_str(), "r");
     if (infile1 == NULL) {
-        printf("\nUnable to open fEQ input file %s.\n", fEQ_filename.c_str());
-        return false;
+        printf("\nUnable to open chem time input file %s.\n", chem_time_filename.c_str());
+        exit(EXIT_FAILURE);
     }
+    
     for (int i = 0; i < NT; i++) {
         for (int j = 0; j < NP; j++) {
             if (fscanf(infile1,
@@ -244,7 +246,7 @@ bool chemistry::initial_conditions(const ESP &            esp,
                        &taunh3_h[j * NT + i],
                        &dummy)
                 != 10) {
-                printf("error parsing fEQ file: %s.\n", fEQ_filename.c_str());
+                printf("error parsing fEQ file: %s.\n", chem_time_filename.c_str());
                 fclose(infile1);
                 return false;
             }
