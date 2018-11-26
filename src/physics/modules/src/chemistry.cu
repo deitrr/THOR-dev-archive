@@ -119,7 +119,9 @@ bool chemistry::initialise_memory(const ESP &              esp,
         {
             {"tracer_d", {tracer_d, esp.nv * esp.point_num * ntr, "RK tracer", "ti", true}},
             {"tracers_d", {tracers_d, esp.nv * esp.point_num * ntr, "RK tracers", "ts", true}},
-            {"tracerk_d", {tracerk_d, esp.nv * esp.point_num * ntr, "RK tracerk", "tk", true}}};
+            {"tracerk_d", {tracerk_d, esp.nv * esp.point_num * ntr, "RK tracerk", "tk", true}},
+            {"difftr_d", {difftr_d, esp.nv * esp.point_num * ntr, "RK tracerk", "tk", true}}
+        };
 
     std::vector<std::string> output_vars = {"tracer_d", "tracers_d", "tracerk_d"};
 
