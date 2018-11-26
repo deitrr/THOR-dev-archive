@@ -953,5 +953,7 @@ int main(int argc, char** argv) {
     //  END OF THE ESP
     printf("End of the ESP!\n\n");
 
+    Grid.free_memory();
+    
     return 0;
 }
