@@ -31,11 +31,11 @@ std::string phy_modules_get_name() {
 
 void phy_modules_print_config() {
     printf("  multi physics module, with radiative transfer and chemistry\n");
-    printf("   Radiative Transfer module: %s\n.", radiative_transfer_enabled ? "true" : "false");
+    printf("   Radiative Transfer module: %s.\n", radiative_transfer_enabled ? "true" : "false");
 
     rt.print_config();
 
-    printf("   Chemistry module: %s\n.", chemistry_enabled ? "true" : "false");
+    printf("   Chemistry module: %s.\n", chemistry_enabled ? "true" : "false");
 
     chem.print_config();
 }
@@ -57,9 +57,9 @@ bool phy_modules_init_mem(const ESP&               esp,
     return out;
 }
 
-bool phy_modules_init_data(const ESP&     esp,
-                           const XPlanet& planet,
-                           storage*       s) {
+bool phy_modules_init_data(const ESP&             esp,
+                           const SimulationSetup& sim,
+                           storage*               s) {
     bool out = true;
     // initialise all the modules data
 
@@ -68,10 +68,10 @@ bool phy_modules_init_data(const ESP&     esp,
     }
 
     if (radiative_transfer_enabled)
-        out &= rt.initial_conditions(esp, planet);
+        out &= rt.initial_conditions(esp, sim);
 
     if (chemistry_enabled)
-        out &= chem.initial_conditions(esp, planet);
+        out &= chem.initial_conditions(esp, sim);
     return out;
 }
 
@@ -97,25 +97,24 @@ bool phy_modules_dyn_core_loop_init(const ESP& esp) {
     return true;
 }
 
-bool phy_modules_dyn_core_loop_slow_modes(const ESP&     esp,
-                                          const XPlanet& planet,
-                                          int            nstep, // Step number
-                                          double         times, // Time-step [s]
-                                          bool           HyDiff) {
+bool phy_modules_dyn_core_loop_slow_modes(const ESP&             esp,
+                                          const SimulationSetup& sim,
+                                          int                    nstep, // Step number
+                                          double                 times) {               // Time-step [s]
 
     if (chemistry_enabled)
-        chem.dyn_core_loop_slow_modes(esp, planet, nstep, times, HyDiff);
+        chem.dyn_core_loop_slow_modes(esp, sim, nstep, times);
 
     return true;
 }
 
-bool phy_modules_dyn_core_loop_fast_modes(const ESP&     esp,
-                                          const XPlanet& planet,
-                                          int            nstep,     // Step number
-                                          double         time_step) { // Time-step [s]
+bool phy_modules_dyn_core_loop_fast_modes(const ESP&             esp,
+                                          const SimulationSetup& sim,
+                                          int                    nstep, // Step number
+                                          double                 time_step) {           // Time-step [s]
 
     if (chemistry_enabled)
-        chem.dyn_core_loop_fast_modes(esp, planet, nstep, time_step);
+        chem.dyn_core_loop_fast_modes(esp, sim, nstep, time_step);
 
     return true;
 }
@@ -129,18 +128,18 @@ bool phy_modules_dyn_core_loop_end(const ESP& esp) {
 }
 
 
-bool phy_modules_phy_loop(ESP&           esp,
-                          const XPlanet& planet,
-                          int            nstep,
-                          double         time_step) {
+bool phy_modules_phy_loop(ESP&                   esp,
+                          const SimulationSetup& sim,
+                          int                    nstep,
+                          double                 time_step) {
     // run all the modules main loop
     bool out = true;
 
     if (chemistry_enabled)
-        chem.phy_loop(esp, planet, nstep, time_step);
+        chem.phy_loop(esp, sim, nstep, time_step);
 
     if (radiative_transfer_enabled)
-        rt.phy_loop(esp, planet, nstep, time_step);
+        rt.phy_loop(esp, sim, nstep, time_step);
 
     return out;
 }

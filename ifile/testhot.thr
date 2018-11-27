@@ -5,36 +5,36 @@ config_version = 1
 # testing sponge layer model
 
 # number of steps
-num_steps = 432000
+num_steps = 20
 
 # length of timesteps imn seconds
-timestep = 300
+timestep = 150
 
 # keys to add
 # TODO: output_dir # relative to working directory
 
 # planet
 # name of simulation for output files
-simulation_ID = Wasp43b
+simulation_ID = kelt9b
 # Radius [m]
-radius = 72427000.0
+radius = 132201701.0
 # Rotation rate [s-1]
-rotation_rate = 9.09E-5
+rotation_rate = 4.9099E-5
 # Gravitational acceleration [m/s^2]
-gravitation = 47
+gravitation = 19.95
 
 # Gas constant [J/(Kg K)]
-Rd = 3714
+Rd = 5000
 # Specific heat capacities [J/(Kg K)]
-Cp = 13000
+Cp = 19000
 # Mean atmospheric temperature [K]
-Tmean = 1800.0
+Tmean = 4000.0
 # Reference surface pressure [Pa]
 P_ref = 10000000.0
 # Altitude of the top of the model domain [m]
-Top_altitude = 1.4e6
+Top_altitude = 10e6
 # Strength of diffusion
-Diffc = 0.015
+Diffc = 0.0099
 
 # grid
 # Spring dynamics
@@ -66,33 +66,33 @@ rest = true
 initial = wasp43_sponge2/esp_output_Wasp43b_re.h5
 
 # Spongebob
-SpongeLayer = false
+SpongeLayer = true
 # latitude rings
 nlat = 20
-ns_sponge = 0.75
+ns_sponge = 0.5
 Rv_sponge = 1e-5
-#shrink_sponge = true
-#t_shrink = 1
 
-# Core benchmark tests
-# Held-Suarez test for Earth == HeldSuarez
-# Benchmark test for shallow hot Jupiter == HSShallowHotJupiter
-# Benchmark test for deep hot Jupiter == HSDeepHotJupiter
-# Benchmark test for tidally locked Earth == HSTidallyLockedEarth
-# No HS test == NoBenchmark (model is then forced with grey RT by default)
+# Benchmark test
+# Held-Suarez test for Earth == 1
+# HS test for shallow hot Jupiter == 3
+# HS test for tidally locked Earth == 2
+# No HS test == 0
+
 core_benchmark = NoBenchmark
 
 # output
 # output every n steps
-n_out = 7200
+n_out = 10
+#n_out = 1000
 
 # output directory (relative to current working directory)
 # defaults to 'results'
-results_path = wasp43b_chem
+results_path = test_sponge_redadd
 
-Tstar = 4520
-planet_star_dist = 0.015
-radius_star = 0.667
+Tstar = 10170
+planet_star_dist = 0.03462
+radius_star = 2.362
+albedo = 0.0
 
 # GPU ID number
 GPU_ID_N = 0
@@ -100,9 +100,4 @@ GPU_ID_N = 0
 gcm_off = false
 
 TPprof = 0
-
-chemistry = true
-
-chem_time_file = src/physics/modules/ifile/solar_chem_time.txt
-chem_fEQ_file = src/physics/modules/ifile/solar_fEQ_THOR.txt
-
+conservation = false
