@@ -31,11 +31,11 @@ std::string phy_modules_get_name() {
 
 void phy_modules_print_config() {
     printf("  multi physics module, with radiative transfer and chemistry\n");
-    printf("   Radiative Transfer module: %s\n.", radiative_transfer_enabled ? "true" : "false");
+    printf("   Radiative Transfer module: %s.\n", radiative_transfer_enabled ? "true" : "false");
 
     rt.print_config();
 
-    printf("   Chemistry module: %s\n.", chemistry_enabled ? "true" : "false");
+    printf("   Chemistry module: %s.\n", chemistry_enabled ? "true" : "false");
 
     chem.print_config();
 }
