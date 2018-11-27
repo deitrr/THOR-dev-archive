@@ -261,6 +261,9 @@ __host__ void ESP::alloc_data(bool conservation) {
     cudaMalloc((void **)&vtmp, nv * nlat * max_count * sizeof(double));
     cudaMalloc((void **)&wtmp, nv * nlat * max_count * sizeof(double));
     utmp_h = (double *)malloc(nv * nlat * max_count * sizeof(double));
+    vtmp_h = (double *)malloc(nv * nlat * max_count * sizeof(double));
+    wtmp_h = (double *)malloc(nv * nlat * max_count * sizeof(double));
+
 
     if (conservation == true) {
         //  Conservation quantities
