@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <cstdio>
+#include <memory>
 
 // class to manage device memory, to take care of allocation and deallocation.
 template<typename T>
