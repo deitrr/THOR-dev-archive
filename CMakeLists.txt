@@ -189,7 +189,7 @@ target_link_libraries (test_storage ${HDF5_LIBRARIES} ${HDF5_CXX_LIBRARIES}  )
 add_executable(test_args EXCLUDE_FROM_ALL ${SRC_CMDARGS})
 add_executable(test_config EXCLUDE_FROM_ALL ${SRC_CONFIG})
 add_executable(test_directories EXCLUDE_FROM_ALL ${SRC_DIRECTORIES})
-#add_executable(test_reduction_add ${SRC_REDUCTION_ADD})
+add_executable(test_reduction_add EXCLUDE_FROM_ALL ${SRC_REDUCTION_ADD})
 add_executable(test_gen_init EXCLUDE_FROM_ALL ${SRC_GEN_INIT})
 target_link_libraries (test_gen_init ${HDF5_LIBRARIES} ${HDF5_CXX_LIBRARIES}  )
 

@@ -231,7 +231,7 @@ void Output(int                current_step, // Number of integration steps
         s.append_value(sim.rest ? 1.0 : 0.0, "/rest", "-", "Starting from rest");
 
         //      TPprof option
-        s.append_value(sim.TPprof, "/TPprof", "-", "Initial TP profile option");
+        //s.append_value(sim.TPprof, "/TPprof", "-", "Initial TP profile option");
     }
 
     //  ESP OUTPUT
