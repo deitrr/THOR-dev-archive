@@ -25,7 +25,8 @@ set(SM "0" CACHE STRING "GPU SM value")
 set(MODULES_SRC "0" CACHE STRING "Physics module subdirectory")
 
 if (MODULES_SRC MATCHES "0")
-  set(MODULES_SRC "src/physics/managers/multi")
+  set(MODULES_SRC "Alfrodull")
+  #set(MODULES_SRC "src/physics/managers/multi/")
 endif()
 
 # if CUDA wants gcc/g++ 5
@@ -160,7 +161,10 @@ include_directories("src/headers")
 ######################################################################
 # physics modules subdirectory
 
-set(THOR_ROOT "../../../../")
+set(THOR_MODULE "1")
+
+file(RELATIVE_PATH THOR_ROOT "${PROJECT_SOURCE_DIR}/${MODULES_SRC}" "${PROJECT_SOURCE_DIR}/" )
+message("Relative path to THOR root from physics module: " ${THOR_ROOT})
 set(THOR_ROOT_INCLUDES "${THOR_ROOT}src/headers" )
 set(SHARED_PHY_MODULES_INC_DIR "${THOR_ROOT}src/physics/modules/inc" )
 set(SHARED_PHY_MODULES_SRC_DIR "${THOR_ROOT}src/physics/modules/src" )
