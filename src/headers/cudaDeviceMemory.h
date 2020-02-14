@@ -5,102 +5,87 @@
 #include <memory>
 
 // class to manage device memory, to take care of allocation and deallocation.
-template<typename T>
-class cuda_device_memory
+template<typename T> class cuda_device_memory
 {
 public:
-  cuda_device_memory()
-  {
+    cuda_device_memory(){
 
-  };
+    };
 
-  cuda_device_memory(size_t size)
-  {
-    allocate(size);
-  }
-  
-  ~cuda_device_memory()
-  {
-    deallocate();
-  };
+    cuda_device_memory(size_t size) {
+        allocate(size);
+    }
 
-  void deallocate()
-  {
-    if (device_ptr != nullptr)
-      {
-	cudaError_t ret = cudaFree(device_ptr);
-	if (ret != cudaSuccess)
-	  printf("CudaDeviceMemory: device free error\n");
-	device_ptr = nullptr;
-	size = 0;
-      }
-  }
-  
-  bool allocate(size_t size_in)
-  {
-    if (device_ptr != nullptr)
-      {
-	deallocate();
-      }
-    cudaError_t ret = cudaMalloc((void**)&device_ptr, size_in*sizeof(T));
+    ~cuda_device_memory() {
+        deallocate();
+    };
 
-    if (ret == cudaSuccess)
-      {
-	size = size_in;
-      }
-    else
-      {
-	size = 0;
-	device_ptr = nullptr;
-      }
-    
-    return ret == cudaSuccess;
-  };
+    void deallocate() {
+        if (device_ptr != nullptr) {
+            cudaError_t ret = cudaFree(device_ptr);
+            if (ret != cudaSuccess)
+                printf("CudaDeviceMemory: device free error\n");
+            device_ptr = nullptr;
+            size       = 0;
+        }
+    }
 
-  T* ptr()
-  {
-    return device_ptr;
-  };
+    bool allocate(size_t size_in) {
+        if (device_ptr != nullptr) {
+            deallocate();
+        }
+        cudaError_t ret = cudaMalloc((void**)&device_ptr, size_in * sizeof(T));
 
-  T* operator*()
-  {
-    return device_ptr;
-  };
+        if (ret == cudaSuccess) {
+            size = size_in;
+        }
+        else {
+            size       = 0;
+            device_ptr = nullptr;
+        }
 
-  bool allocated()
-  {
-    return device_ptr != nullptr;
-  };
+        return ret == cudaSuccess;
+    };
 
-  size_t get_size()
-  {
-    return size;
-  };
+    T* ptr() {
+        return device_ptr;
+    };
 
-  
-  // zero out device memory
-  bool zero()
-  {
-    
-   cudaError_t ret =  cudaMemset(device_ptr, 0, sizeof(T) * size);
-   return ret == cudaSuccess;
-  };
+    T* operator*() {
+        return device_ptr;
+    };
 
-  // copy data from device to local array
-  bool fetch(std::unique_ptr<T[]>& host_ptr)
-  {
-    cudaError_t ret = cudaMemcpy( host_ptr.get(), device_ptr, size * sizeof(T), cudaMemcpyDeviceToHost);
-    return ret == cudaSuccess;
-  };
+    bool allocated() {
+        return device_ptr != nullptr;
+    };
 
-  // copy data from local array to device
-  bool put(std::unique_ptr<T[]> &host_ptr)
-  {
-    cudaError_t ret = cudaMemcpy(device_ptr, host_ptr.get(), size * sizeof(T), cudaMemcpyHostToDevice);
-    return ret == cudaSuccess;
-  };
+    size_t get_size() {
+        return size;
+    };
+
+
+    // zero out device memory
+    bool zero() {
+
+        cudaError_t ret = cudaMemset(device_ptr, 0, sizeof(T) * size);
+        return ret == cudaSuccess;
+    };
+
+    // copy data from device to local array
+    bool fetch(std::unique_ptr<T[]>& host_ptr) {
+        cudaError_t ret =
+            cudaMemcpy(host_ptr.get(), device_ptr, size * sizeof(T), cudaMemcpyDeviceToHost);
+        return ret == cudaSuccess;
+    };
+
+    // copy data from local array to device
+    bool put(std::unique_ptr<T[]>& host_ptr) {
+        cudaError_t ret =
+            cudaMemcpy(device_ptr, host_ptr.get(), size * sizeof(T), cudaMemcpyHostToDevice);
+        return ret == cudaSuccess;
+    };
 
 private:
-  T * device_ptr = nullptr;
-  size_t size;
+    T*     device_ptr = nullptr;
+    size_t size;
 };
