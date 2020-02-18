@@ -553,8 +553,8 @@ int main(int argc, char** argv) {
     }
     else if (uh_thermo_str == "vary_R_CP") {
         ultrahot_thermo = VARY_R_CP;
-        log::printf("ultrahot_thermo option 'vary_R_CP' not ready yet \n");
-        config_OK &= false;
+        // log::printf("ultrahot_thermo option 'vary_R_CP' not ready yet \n");
+        config_OK &= true;
     }
     else if (uh_thermo_str == "full") {
         ultrahot_thermo = FULL;
